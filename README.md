@@ -1,93 +1,105 @@
 # ERC-20-Token
-# MyToken Smart Contract
+# MyToken and TokenManager Contracts
 
 ## Overview
 
-The `MyToken` contract is an ERC20-compliant token with additional functionalities such as burnable tokens, permit (gasless approvals), and ownership control. This contract uses the OpenZeppelin library for secure and tested implementation.
+This project consists of two main Solidity smart contracts: `MyToken` and `TokenManager`. The `MyToken` contract is an ERC20 token with additional functionalities for burning and permitting, while `TokenManager` provides management capabilities for the `MyToken` contract.
 
-## Features
-
-- **ERC20 Standard**: Implements the ERC20 standard for fungible tokens.
-- **Burnable Tokens**: Tokens can be burned (destroyed), reducing the total supply.
-- **Ownable**: Ownership of the contract is assigned to an address that can execute restricted functions.
-- **ERC20 Permit**: Allows for gasless approvals using signatures instead of transactions.
-
-## Requirements
-
-- Solidity version ^0.8.20
-- OpenZeppelin Contracts version ^5.0.0
-
-## Installation
-
-To use this contract, ensure you have the OpenZeppelin Contracts library installed in your project. You can install it via npm:
-
-```sh
-npm install @openzeppelin/contracts@5.0.2
+### SPDX License Identifier
+```solidity
+// SPDX-License-Identifier: MIT
 ```
+The project is licensed under the MIT License.
 
-## Usage
+### Solidity Version
+```solidity
+pragma solidity ^0.8.20;
+```
+The contracts are written in Solidity version 0.8.20.
 
-Below is an example of how to deploy and interact with the `MyToken` contract.
+## Dependencies
+The contracts make use of the OpenZeppelin Contracts library, version 5.0.0 or later.
 
-### Deployment
+## MyToken Contract
 
-To deploy the contract, you need to provide an initial owner address. This can be done using your preferred Ethereum development environment (e.g., Hardhat, Truffle).
+The `MyToken` contract is an ERC20 token with additional capabilities, inheriting from multiple OpenZeppelin contracts:
+- `ERC20`
+- `ERC20Burnable`
+- `Ownable`
+- `ERC20Permit`
+
+### Contract Definition
 
 ```solidity
-const MyToken = artifacts.require("MyToken");
+contract MyToken is ERC20, ERC20Burnable, Ownable, ERC20Permit {
+    constructor(address initialOwner)
+        ERC20("MyToken", "MTK")
+        Ownable(initialOwner)
+        ERC20Permit("MyToken")
+    {}
 
-module.exports = async function (deployer, network, accounts) {
-  const initialOwner = accounts[0];
-  await deployer.deploy(MyToken, initialOwner);
-};
-```
-
-### Interacting with the Contract
-
-Once deployed, the contract exposes several functions:
-
-- `mint(address to, uint256 amount)`: Mints new tokens to the specified address. Only the owner can call this function.
-- `burn(uint256 amount)`: Burns the specified amount of tokens from the caller's account.
-- Standard ERC20 functions such as `transfer`, `approve`, `transferFrom`, etc.
-
-#### Example
-
-```javascript
-const myToken = await MyToken.deployed();
-
-// Minting tokens
-await myToken.mint("0xRecipientAddress", 1000, { from: "0xOwnerAddress" });
-
-// Burning tokens
-await myToken.burn(500, { from: "0xHolderAddress" });
-
-// Transferring tokens
-await myToken.transfer("0xAnotherAddress", 100, { from: "0xHolderAddress" });
-```
-
-## Contract Details
-
-### Constructor
-
-```solidity
-constructor(address initialOwner)
-    ERC20("MyToken", "MTK")
-    Ownable(initialOwner)
-    ERC20Permit("MyToken")
-{}
-```
-
-The constructor initializes the token with the following parameters:
-- **initialOwner**: The address that will be set as the owner of the contract.
-
-### Functions
-
-#### `mint`
-
-```solidity
-function mint(address to, uint256 amount) public onlyOwner {
-    _mint(to, amount);
+    function mint(address to, uint256 amount) public onlyOwner {
+        _mint(to, amount);
+    }
 }
 ```
 
-Mints new tokens to the specified address. Can only be called by the owner.
+### Features
+- **ERC20 Token**: Basic ERC20 functionality.
+- **Burnable**: Allows tokens to be irreversibly burned.
+- **Ownable**: Ownership control, allowing for restricted access to certain functions.
+- **Permit**: Provides gasless approvals using EIP-2612.
+
+### Constructor
+The constructor initializes the token with the name "MyToken" and symbol "MTK". It also sets the initial owner and initializes the permit functionality.
+
+### Functions
+- `mint(address to, uint256 amount)`: Mints new tokens to the specified address. This function can only be called by the owner.
+
+## TokenManager Contract
+
+The `TokenManager` contract provides management functionalities for the `MyToken` contract.
+
+### Contract Definition
+
+```solidity
+contract TokenManager {
+    MyToken public token;
+
+    constructor(MyToken _token) {
+        token = _token;
+    }
+
+    function burnTokens(uint256 amount) public {
+        token.burn(amount);
+    }
+
+    function transferTokens(address to, uint256 amount) public {
+        token.transfer(to, amount);
+    }
+}
+```
+
+### Features
+- **Burn Tokens**: Allows for burning a specified amount of `MyToken`.
+- **Transfer Tokens**: Allows for transferring a specified amount of `MyToken` to a given address.
+
+### Constructor
+The constructor accepts an instance of the `MyToken` contract, which it will manage.
+
+### Functions
+- `burnTokens(uint256 amount)`: Burns the specified amount of tokens.
+- `transferTokens(address to, uint256 amount)`: Transfers the specified amount of tokens to the given address.
+
+## Usage
+
+### Deployment
+
+1. Deploy the `MyToken` contract, providing the initial owner's address.
+2. Deploy the `TokenManager` contract, providing the address of the deployed `MyToken` contract.
+
+### Interaction
+
+- Use the `mint` function in `MyToken` to create new tokens (owner only).
+- Use the `burnTokens` function in `TokenManager` to burn tokens.
+- Use the `transferTokens` function in `TokenManager` to transfer tokens.
