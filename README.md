@@ -1,105 +1,112 @@
-# ERC-20-Token
-# MyToken and TokenManager Contracts
+# MyToken README
 
 ## Overview
 
-This project consists of two main Solidity smart contracts: `MyToken` and `TokenManager`. The `MyToken` contract is an ERC20 token with additional functionalities for burning and permitting, while `TokenManager` provides management capabilities for the `MyToken` contract.
+**MyToken** is an ERC-20 compliant token built on the Ethereum blockchain. It includes additional functionalities such as burning tokens and permissioned minting, and it leverages OpenZeppelin contracts for secure and efficient development.
 
-### SPDX License Identifier
-```solidity
-// SPDX-License-Identifier: MIT
-```
-The project is licensed under the MIT License.
+## Features
 
-### Solidity Version
-```solidity
-pragma solidity ^0.8.20;
-```
-The contracts are written in Solidity version 0.8.20.
+- **ERC-20 Standard Compliance**: MyToken is fully compliant with the ERC-20 standard.
+- **Mintable**: Only the owner of the contract can mint new tokens.
+- **Burnable**: Users can burn their tokens to reduce the total supply.
+- **Ownable**: The contract includes ownership management.
+- **ERC-20 Permit**: Allows approvals to be made via signatures, reducing the number of transactions required.
+
+## Contract Details
+
+- **Token Name**: MyToken
+- **Token Symbol**: MTK
 
 ## Dependencies
-The contracts make use of the OpenZeppelin Contracts library, version 5.0.0 or later.
 
-## MyToken Contract
-
-The `MyToken` contract is an ERC20 token with additional capabilities, inheriting from multiple OpenZeppelin contracts:
+The contract uses OpenZeppelin libraries:
 - `ERC20`
 - `ERC20Burnable`
 - `Ownable`
 - `ERC20Permit`
 
-### Contract Definition
+These libraries provide a robust foundation for creating secure and functional smart contracts.
 
-```solidity
-contract MyToken is ERC20, ERC20Burnable, Ownable, ERC20Permit {
-    constructor(address initialOwner)
-        ERC20("MyToken", "MTK")
-        Ownable(initialOwner)
-        ERC20Permit("MyToken")
-    {}
-
-    function mint(address to, uint256 amount) public onlyOwner {
-        _mint(to, amount);
-    }
-}
-```
-
-### Features
-- **ERC20 Token**: Basic ERC20 functionality.
-- **Burnable**: Allows tokens to be irreversibly burned.
-- **Ownable**: Ownership control, allowing for restricted access to certain functions.
-- **Permit**: Provides gasless approvals using EIP-2612.
+## Functions
 
 ### Constructor
-The constructor initializes the token with the name "MyToken" and symbol "MTK". It also sets the initial owner and initializes the permit functionality.
-
-### Functions
-- `mint(address to, uint256 amount)`: Mints new tokens to the specified address. This function can only be called by the owner.
-
-## TokenManager Contract
-
-The `TokenManager` contract provides management functionalities for the `MyToken` contract.
-
-### Contract Definition
 
 ```solidity
-contract TokenManager {
-    MyToken public token;
+constructor() ERC20("MyToken", "MTK") ERC20Permit("MyToken") Ownable(msg.sender) {}
+```
+Initializes the token with the name "MyToken" and the symbol "MTK". It also sets the deployer as the owner of the contract.
 
-    constructor(MyToken _token) {
-        token = _token;
-    }
+### mint
 
-    function burnTokens(uint256 amount) public {
-        token.burn(amount);
-    }
-
-    function transferTokens(address to, uint256 amount) public {
-        token.transfer(to, amount);
-    }
+```solidity
+function mint(address to, uint256 amount) public onlyOwner {
+    _mint(to, amount);
 }
 ```
+Mints new tokens to a specified address. This function can only be called by the owner of the contract.
 
-### Features
-- **Burn Tokens**: Allows for burning a specified amount of `MyToken`.
-- **Transfer Tokens**: Allows for transferring a specified amount of `MyToken` to a given address.
+### burnTokens
 
-### Constructor
-The constructor accepts an instance of the `MyToken` contract, which it will manage.
+```solidity
+function burnTokens(uint256 amount) public {
+    burn(amount);
+}
+```
+Allows users to burn a specified amount of their own tokens.
 
-### Functions
-- `burnTokens(uint256 amount)`: Burns the specified amount of tokens.
-- `transferTokens(address to, uint256 amount)`: Transfers the specified amount of tokens to the given address.
+### burnTokensFrom
+
+```solidity
+function burnTokensFrom(address from, uint256 amount) public {
+    burnFrom(from, amount);
+}
+```
+Allows users to burn tokens from a specified address. The caller must have allowance for the specified amount.
+
+### transferTokens
+
+```solidity
+function transferTokens(address to, uint256 amount) public {
+    transfer(to, amount);
+}
+```
+Allows users to transfer tokens to a specified address.
 
 ## Usage
 
-### Deployment
+### Deploying the Contract
 
-1. Deploy the `MyToken` contract, providing the initial owner's address.
-2. Deploy the `TokenManager` contract, providing the address of the deployed `MyToken` contract.
+To deploy the contract, use a deployment tool such as Truffle, Hardhat, or Remix. Ensure that you have the necessary dependencies installed.
 
-### Interaction
+### Interacting with the Contract
 
-- Use the `mint` function in `MyToken` to create new tokens (owner only).
-- Use the `burnTokens` function in `TokenManager` to burn tokens.
-- Use the `transferTokens` function in `TokenManager` to transfer tokens.
+Once deployed, you can interact with the contract using Web3.js, Ethers.js, or any other Ethereum library. Make sure you have the contract ABI and address.
+
+### Minting Tokens
+
+To mint tokens, the owner can call the `mint` function:
+```javascript
+myTokenContract.methods.mint(receiverAddress, amount).send({ from: ownerAddress });
+```
+
+### Burning Tokens
+
+To burn tokens, a user can call the `burnTokens` function:
+```javascript
+myTokenContract.methods.burnTokens(amount).send({ from: userAddress });
+```
+
+### Burning Tokens from Another Address
+
+To burn tokens from another address, a user can call the `burnTokensFrom` function:
+```javascript
+myTokenContract.methods.burnTokensFrom(fromAddress, amount).send({ from: userAddress });
+```
+
+### Transferring Tokens
+
+To transfer tokens, a user can call the `transferTokens` function:
+```javascript
+myTokenContract.methods.transferTokens(receiverAddress, amount).send({ from: userAddress });
+```
+
